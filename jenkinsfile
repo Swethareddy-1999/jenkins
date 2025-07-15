@@ -1,0 +1,15 @@
+pipline {
+     agent any
+     stages {
+	     stage("code") {
+	         steps {
+		         sh ''' 
+                    echo "Hello, this is build"
+                 '''
+	         }	
+	     }
+	      
+	    				
+	 
+      }
+}
