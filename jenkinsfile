@@ -8,7 +8,15 @@ pipline {
                  '''
 	         }	
 	     }
-	      
+	     stage('Test') {
+            steps {
+                script{
+                 sh """
+                    echo "Hello, this is test"
+                 """
+                }
+            }
+        } 
 	    				
 	 
       }
