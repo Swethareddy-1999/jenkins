@@ -16,6 +16,15 @@ pipline {
                  """
                 }
             }
+        }
+        stage('deploy') {
+            steps {
+                script{
+                 sh """
+                    echo "Hello, this is test"
+                 """
+                }
+            }
         } 
 	    				
 	 
