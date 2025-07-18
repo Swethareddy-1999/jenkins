@@ -1,15 +1,36 @@
 pipline {
-     agent any
+     agent { label "agent1"}
+     environment { 
+        PROJECT = 'EXPENSE'
+        COMPONENT = 'BACKEND' 
+        DEPLOY_TO = "production"
+     }
+     parameters{
+        string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
+        text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
+        booleanParam(name: 'TOGGLE', defaultValue: true, description: 'Toggle this value')
+        choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
+        password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
+    options {
+        disableConcurrentBuilds()       // in prod will wont build multiple if we build will use this to detect mul builds
+        timeout(time: 30, unit: 'MINUTES')        // even in 30 min the build was still running then pip will go time out exceeded.
+    }
      stages {
 	     stage("code") {
 	         steps {
 		         sh ''' 
-                    echo "Hello, this is build"
-                 '''
+                          echo "Hello, this is build"
+                          echo "Project: $PROJECT"
+                          echo "Hello ${params.PERSON}"
+                          echo "Biography: ${params.BIOGRAPHY}"
+                     	  echo "Toggle: ${params.TOGGLE}"
+                    	  echo "Choice: ${params.CHOICE}"
+                    	  echo "Password: ${params.PASSWORD}"
+                         '''
 	         }	
 	     }
 	     stage('Test') {
-            steps {
+               steps {
                 script{
                  sh """
                     echo "Hello, this is test"
@@ -18,6 +39,12 @@ pipline {
             }
         }
         stage('deploy') {
+           input {
+                message "Should we continue?"   /// for approval
+           }
+            when { 
+                environment name: 'DEPLOY_TO', value: 'production'   // when the deply to in prod pipeline will run otherwise pieline will skipeed.
+            }
             steps {
                 script{
                  sh """
@@ -26,7 +53,40 @@ pipline {
                 }
             }
         } 
-	    				
-	 
-      }
+	 stage('Parallel Stages') {     /// if there is no dependecy one stage on another stage we can run both stages at a time ex: RDS, EKS we can run parallaly
+            parallel {
+                stage('STAGE-1') {
+                    steps {
+                        script{
+                            sh """
+                                echo "Hello, this is STAGE-1"
+                                sleep 15
+                            """
+                        }
+                    }
+                }
+                stage('STAGE-2') {
+                    steps {
+                        script{
+                            sh """
+                                echo "Hello, this is STAGE-2"
+                                sleep 15
+                            """
+                        }
+                    }
+                }   
+	    }
+	}
+   }
+post { 
+        always { 
+            echo 'I will always say Hello again!
+        }
+        failure { 
+            echo 'I will run when pipeline is failed'
+        }
+        success { 
+            echo 'I will run when pipeline is success'
+        } 
+    }
 }
